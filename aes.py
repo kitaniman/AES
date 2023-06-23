@@ -22,11 +22,13 @@ def aes_128_decrypt(x: NDArray[np.unit8], k: NDArray[np.unit8]):
 def apply_rounds(x: NDArray[np.unit8], key_schedule: Iterator):
     state = x ^ next(key_schedule)
 
-    # TODO: remove mix_column form the last step
-    for key in key_schedule:
+    for round, key in enumerate(key_schedule, 1):
         state = s(state)
         state = shift_rows(state)
-        state = mix_column(state)
+
+        if round < 10:
+            state = mix_column(state)
+
         state ^= key
 
     return state
