@@ -29,13 +29,13 @@ def gf_multiply(x, y):
 
 
 def finite_field_256_dot(v: NDArray[np.uint8], u: NDArray[np.uint8]):
-    result = 0
+    result = np.zeros(4, dtype=np.uint8)
 
-    for vi, ui in zip(v, u):
+    for i, (vi, ui) in enumerate(zip(v, u)):
         if ui == 0x01:
-            result ^= vi
+            result[i] ^= vi
         else:
-            result ^= gf_multiply(vi, ui)
+            result[i] ^= gf_multiply(vi, ui)
 
     return result
 
