@@ -2,10 +2,11 @@ import numpy as np
 from aes import aes_128_encrypt, aes_128_decrypt
 
 
-plain_text = np.arange(start=0, stop=16, dtype=np.uint8)
+text = 'ABCDEFGHIJKLMNOP'
+plain_text = np.array([ord(c) for c in text], dtype=np.uint8)
 print('plain text:', plain_text)
 
-key = np.ones(16, dtype=np.uint8)
+key = np.full(16, ord('B'), dtype=np.uint8)
 
 cipher_text = aes_128_encrypt(plain_text, key)
 print('cipher text:', cipher_text)
