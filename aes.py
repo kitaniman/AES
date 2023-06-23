@@ -9,17 +9,17 @@ from shift_rows import shift_rows
 from mix_column import mix_column
 
 
-def aes_128_encrypt(x: NDArray[np.unit8], k: NDArray[np.unit8]):
+def aes_128_encrypt(x: NDArray[np.uint8], k: NDArray[np.uint8]):
     key_generator = key_schedule(k)
     return apply_rounds(x, key_generator)
 
 
-def aes_128_decrypt(x: NDArray[np.unit8], k: NDArray[np.unit8]):
+def aes_128_decrypt(x: NDArray[np.uint8], k: NDArray[np.uint8]):
     key_generator = reversed(tuple(key_schedule(k)))
     return apply_rounds(x, key_generator)
 
 
-def apply_rounds(x: NDArray[np.unit8], key_schedule: Iterator):
+def apply_rounds(x: NDArray[np.uint8], key_schedule: Iterator):
     state = x ^ next(key_schedule)
 
     for round, key in enumerate(key_schedule, 1):
