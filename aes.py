@@ -10,33 +10,29 @@ from mix_column import mix_column, inv_mix_column
 
 def aes_128_encrypt(x: NDArray[np.uint8], k: NDArray[np.uint8]):
     key_generator = key_schedule(k)
-    state = x ^ next(key_generator)
+    state = x
 
     for round in range(1, 11):
+        state ^= next(key_generator)
         state = s(state)
         state = shift_rows(state)
 
         if round < 10:
             state = mix_column(state)
 
-        state ^= next(key_generator)
-
-    return state
+    return state ^ next(key_generator)
 
 
 def aes_128_decrypt(x: NDArray[np.uint8], k: NDArray[np.uint8]):
     key_generator = reversed(tuple(key_schedule(k)))
     state = x ^ next(key_generator)
 
-    for round in range(10, 1, -1):
+    for round in range(10, 0, -1):
+        if round < 10:
+            state = inv_mix_column(state)
+
         state = inv_shift_rows(state)
         state = inv_s(state)
         state ^= next(key_generator)
-        state = inv_mix_column(state)
-
-    # Final round
-    state = inv_shift_rows(state)
-    state = inv_s(state)
-    state ^= next(key_generator)
 
     return state
