@@ -14,7 +14,7 @@ inv_constant_matrix = np.array([
     [0x0E, 0x0B, 0x0D, 0x09],
     [0x09, 0x0E, 0x0B, 0x0D],
     [0x0D, 0x09, 0x0E, 0x0B],
-    [0x0B, 0x0D, 0x01, 0x0E],
+    [0x0B, 0x0D, 0x09, 0x0E],
 ], dtype=np.uint8)
 
 
@@ -24,18 +24,36 @@ mult_table_0x02 = [
 ]
 
 
-def finite_field_256_dot(v: NDArray[np.uint8], u: NDArray[np.uint8]):
-    result = np.zeros(4, dtype=np.uint8)
+def gf_mult(x, y) -> int:
+    p = 0b100011011
+    m = 0
+
+    for _ in range(8):
+        m <<= 1
+
+        if m & 0b100000000:
+            m ^= p
+
+        if y & 0b010000000:
+            m ^= x
+
+        y <<= 1
+
+    return m
+
+
+def finite_field_256_dot(v: NDArray[np.uint8], u: NDArray[np.uint8]) -> int:
+    result = 0
 
     for i, (vi, ui) in enumerate(zip(v, u)):
         if ui == 0x01:
-            result[i] = vi
+            result ^= vi
         elif ui == 0x02:
-            result[i] = mult_table_0x02[vi]
+            result ^= mult_table_0x02[vi]
         elif ui == 0x03:
-            result[i] = (mult_table_0x02[vi] ^ vi) & 0xFF
+            result ^= (mult_table_0x02[vi] ^ vi) & 0xFF
         else:
-            raise NotImplementedError('GF(2^8) * not implemented for u > 3.')
+            result ^= gf_mult(vi, ui)
 
     return result
 
@@ -44,7 +62,10 @@ def mix_column(b: NDArray[np.uint8]):
     reshaped = b.reshape((4, 4))
 
     c = np.array([
-        finite_field_256_dot(reshaped[:, i], constant_matrix[i])
+        [
+            finite_field_256_dot(reshaped[:, j], constant_matrix[i])
+            for j in range(4)
+        ]
         for i in range(4)
     ])
 
@@ -55,7 +76,10 @@ def inv_mix_column(c: NDArray[np.uint8]):
     reshaped = c.reshape((4, 4))
 
     b = np.array([
-        finite_field_256_dot(reshaped[:, i], inv_constant_matrix[i])
+        [
+            finite_field_256_dot(reshaped[:, j], inv_constant_matrix[i])
+            for j in range(4)
+        ]
         for i in range(4)
     ])
 
