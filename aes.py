@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.typing import NDArray
-from collections.abc import Iterator
 
 
 from key_schedule import key_schedule
@@ -27,15 +26,17 @@ def aes_128_encrypt(x: NDArray[np.uint8], k: NDArray[np.uint8]):
 
 def aes_128_decrypt(x: NDArray[np.uint8], k: NDArray[np.uint8]):
     key_generator = reversed(tuple(key_schedule(k)))
-    state = x
+    state = x ^ next(key_generator)
 
-    for round in range(1, 11):
-        state ^= next(key_generator)
-
-        if round > 1:
-            state = inv_mix_column(state)
-
+    for round in range(10, 1, -1):
         state = inv_shift_rows(state)
         state = inv_s(state)
+        state ^= next(key_generator)
+        state = inv_mix_column(state)
 
-    return state ^ next(key_generator)
+    # Final round
+    state = inv_shift_rows(state)
+    state = inv_s(state)
+    state ^= next(key_generator)
+
+    return state

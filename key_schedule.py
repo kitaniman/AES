@@ -32,7 +32,7 @@ def g(v: NDArray[np.uint8], i: int):
 
 
 def key_schedule(k: NDArray[np.uint8]):
-    w = np.split(k, 4)
+    w = [np.copy(x) for x in np.split(k, 4)]
     yield np.concatenate(w)
 
     for i in range(10):
